@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#355847" />
+    <meta
+      name="description"
+      content="Lecturotheque permet d'importer, lire, traduire, resumer et classer des documents d'etude."
+    />
+    <title>Lecturotheque</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="manifest.webmanifest" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar" aria-label="Bibliotheque">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div>
+            <h1>Lecturotheque</h1>
+            <p>Lire, traduire, reviser.</p>
+          </div>
+        </div>
+
+        <div class="library-tools">
+          <label class="search-label" for="searchInput">Recherche</label>
+          <input id="searchInput" type="search" placeholder="Titre, categorie, contenu" />
+          <select id="categoryFilter" aria-label="Filtrer par categorie">
+            <option value="">Toutes les categories</option>
+          </select>
+        </div>
+
+        <section class="cloud-panel" aria-label="Synchronisation cloud">
+          <div class="cloud-heading">
+            <div>
+              <h2>Compte</h2>
+              <p id="cloudStatus">Cloud non configure</p>
+            </div>
+            <button id="syncBtn" class="mini" type="button">Sync</button>
+          </div>
+
+          <details class="cloud-settings">
+            <summary>Reglages cloud</summary>
+            <div class="form-stack">
+              <label for="supabaseUrl">URL Supabase</label>
+              <input id="supabaseUrl" type="url" placeholder="https://xxxx.supabase.co" />
+            </div>
+            <div class="form-stack">
+              <label for="supabaseKey">Cle publique anon</label>
+              <input id="supabaseKey" type="password" placeholder="eyJ..." />
+            </div>
+            <button id="saveCloudBtn" class="primary" type="button">Enregistrer</button>
+          </details>
+
+          <div class="cloud-auth">
+            <input id="emailInput" type="email" placeholder="ton courriel" />
+            <div class="cloud-actions">
+              <button id="signInBtn" type="button">Connexion</button>
+              <button id="signOutBtn" type="button">Sortir</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="library-section">
+          <div class="section-title">
+            <h2>Documents</h2>
+            <span id="docCount">0</span>
+          </div>
+          <div id="libraryList" class="library-list" aria-live="polite"></div>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <header class="workspace-header">
+          <div>
+            <p class="eyebrow">Assistant de lecture bilingue</p>
+            <h2>Importer, comprendre, classer.</h2>
+          </div>
+          <div class="header-actions">
+            <button id="exportBtn" class="icon-button" title="Exporter la bibliotheque" aria-label="Exporter la bibliotheque">
+              <span aria-hidden="true">⇩</span>
+            </button>
+            <button id="clearBtn" class="icon-button danger" title="Vider la bibliotheque" aria-label="Vider la bibliotheque">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="import-panel">
+          <div class="tabs" role="tablist" aria-label="Mode d'import">
+            <button class="tab active" data-mode="text" type="button">Texte</button>
+            <button class="tab" data-mode="pdf" type="button">PDF</button>
+            <button class="tab" data-mode="web" type="button">Web</button>
+          </div>
+
+          <div class="import-grid">
+            <div class="form-stack">
+              <label for="docTitle">Titre</label>
+              <input id="docTitle" type="text" placeholder="Ex. Article sur la memoire" />
+            </div>
+            <div class="form-stack">
+              <label for="docCategory">Categorie</label>
+              <input id="docCategory" type="text" list="categoryList" placeholder="Ex. Biologie, Histoire, Anglais" />
+              <datalist id="categoryList"></datalist>
+            </div>
+            <div class="form-stack">
+              <label for="languageSelect">Langue du document</label>
+              <select id="languageSelect">
+                <option value="auto">Detecter automatiquement</option>
+                <option value="fr">Francais</option>
+                <option value="en">Anglais</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="textImport" class="mode-panel active">
+            <label for="textInput">Texte a importer</label>
+            <textarea id="textInput" placeholder="Colle ton texte ici..."></textarea>
+          </div>
+
+          <div id="pdfImport" class="mode-panel">
+            <label for="pdfInput">Fichier PDF</label>
+            <input id="pdfInput" type="file" accept="application/pdf" />
+            <p class="hint">Le texte sera extrait dans le navigateur. Les PDF numerises sans OCR peuvent rester vides.</p>
+          </div>
+
+          <div id="webImport" class="mode-panel">
+            <label for="urlInput">Adresse web</label>
+            <div class="url-row">
+              <input id="urlInput" type="url" placeholder="https://exemple.com/article" />
+              <button id="fetchUrlBtn" type="button">Importer</button>
+            </div>
+            <p class="hint">Certains sites bloquent l'import direct; dans ce cas, colle le texte dans l'onglet Texte.</p>
+          </div>
+
+          <div class="import-actions">
+            <button id="saveDocBtn" class="primary" type="button">Ajouter a la bibliotheque</button>
+            <p id="statusText" class="status" role="status"></p>
+          </div>
+        </section>
+
+        <section class="reader-layout">
+          <article class="reader-panel">
+            <div class="doc-meta">
+              <div>
+                <p id="selectedCategory" class="eyebrow">Aucun document choisi</p>
+                <h3 id="selectedTitle">Choisis ou importe un document</h3>
+              </div>
+              <span id="selectedLanguage" class="language-pill">--</span>
+            </div>
+
+            <div class="action-bar" aria-label="Actions de lecture">
+              <button id="readOriginalBtn" type="button">Lire original</button>
+              <button id="translateBtn" type="button">Traduire en francais</button>
+              <button id="readFrenchBtn" type="button">Lire version francaise</button>
+              <button id="summarizeBtn" type="button">Resume</button>
+              <button id="studyBtn" type="button">Fiche d'etude</button>
+              <button id="stopSpeechBtn" type="button">Arreter</button>
+            </div>
+
+            <div class="text-columns">
+              <section>
+                <div class="column-heading">
+                  <h4>Original</h4>
+                  <button id="copyOriginalBtn" class="mini" type="button">Copier</button>
+                </div>
+                <div id="originalText" class="text-box empty">Le contenu du document apparaitra ici.</div>
+              </section>
+              <section>
+                <div class="column-heading">
+                  <h4>Francais</h4>
+                  <button id="copyFrenchBtn" class="mini" type="button">Copier</button>
+                </div>
+                <div id="translatedText" class="text-box empty">La traduction francaise apparaitra ici.</div>
+              </section>
+            </div>
+          </article>
+
+          <aside class="study-panel">
+            <div class="study-header">
+              <h3>Travail d'etude</h3>
+              <button id="saveStudyBtn" class="mini" type="button">Classer</button>
+            </div>
+            <div class="study-tabs" role="tablist" aria-label="Type de note">
+              <button class="study-tab active" data-study="summary" type="button">Resume</button>
+              <button class="study-tab" data-study="cards" type="button">Fiches</button>
+            </div>
+            <div id="summaryOutput" class="study-output active">Cree un resume pour le document choisi.</div>
+            <div id="cardsOutput" class="study-output">Cree une fiche d'etude pour reviser.</div>
+          </aside>
+        </section>
+      </section>
+    </main>
+
+    <template id="libraryItemTemplate">
+      <button class="library-item" type="button">
+        <span class="item-title"></span>
+        <span class="item-meta"></span>
+      </button>
+    </template>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

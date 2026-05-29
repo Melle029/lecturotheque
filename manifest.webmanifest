@@ -1,0 +1,18 @@
+{
+  "name": "Lecturotheque",
+  "short_name": "Lecturo",
+  "description": "Importer, lire, traduire, resumer et classer des documents d'etude.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbfbf7",
+  "theme_color": "#355847",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
